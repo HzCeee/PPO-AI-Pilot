@@ -67,7 +67,7 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         if new:
             ep_rets.append(cur_ep_ret)
             ep_lens.append(cur_ep_len)
-            cur_ep_ret = 0
+            # cur_ep_ret = 0
             cur_ep_len = 0
 
             ############################
@@ -90,6 +90,8 @@ def traj_segment_generator(pi, env, horizon, stochastic):
             else:
                 roll_return.popleft()
                 roll_return.append(episode_reward)
+            
+            cur_ep_ret = 0
             ############################
 
             ob = env.reset()
