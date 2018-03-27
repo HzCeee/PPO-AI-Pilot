@@ -89,7 +89,7 @@ def traj_segment_generator(pi, env, horizon, stochastic):
                 roll_return.append(cur_ep_ret)
             else:
                 roll_return.popleft()
-                roll_return.append(episode_reward)
+                roll_return.append(cur_ep_ret)
             
             cur_ep_ret = 0
             ############################
