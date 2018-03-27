@@ -27,6 +27,15 @@ def traj_segment_generator(pi, env, horizon, stochastic):
     acs = np.array([ac for _ in range(horizon)])
     prevacs = acs.copy()
 
+    ############################
+    roll_distance = deque([])
+    roll_success_rate = deque([])
+    roll_return = deque([])
+    max_success_rate = 0
+
+    saver = tf.train.Saver()
+    ############################
+
     while True:
         prevac = ac
         ac, vpred = pi.act(stochastic, ob)
@@ -36,7 +45,9 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         if t > 0 and t % horizon == 0:
             yield {"ob" : obs, "rew" : rews, "vpred" : vpreds, "new" : news,
                     "ac" : acs, "prevac" : prevacs, "nextvpred": vpred * (1 - new),
-                    "ep_rets" : ep_rets, "ep_lens" : ep_lens}
+                    "ep_rets" : ep_rets, "ep_lens" : ep_lens, 
+                    'distance': roll_distance, 'success_rate': roll_success_rate,
+                    'return': roll_return, 'max_success_rate': max_success_rate}
             # Be careful!!! if you change the downstream algorithm to aggregate
             # several of these batches, then be sure to do a deepcopy
             ep_rets = []
@@ -48,7 +59,7 @@ def traj_segment_generator(pi, env, horizon, stochastic):
         acs[i] = ac
         prevacs[i] = prevac
 
-        ob, rew, new, _ = env.step(ac)
+        ob, rew, new, info = env.step(ac)
         rews[i] = rew
 
         cur_ep_ret += rew
@@ -58,8 +69,39 @@ def traj_segment_generator(pi, env, horizon, stochastic):
             ep_lens.append(cur_ep_len)
             cur_ep_ret = 0
             cur_ep_len = 0
+
+            ############################
+            if len(roll_distance) < 2000:
+                roll_distance.append(info['distance'])
+            else:
+                roll_distance.popleft()
+                roll_distance.append(info['distance'])
+
+            success_rate = 1 if info['distance'] <= 1 else 0
+
+            if len(roll_success_rate) < 2000:
+                roll_success_rate.append(success_rate)
+            else:
+                roll_success_rate.popleft()
+                roll_success_rate.append(success_rate)
+
+            if len(roll_return) < 2000:
+                roll_return.append(episode_reward)
+            else:
+                roll_return.popleft()
+                roll_return.append(episode_reward)
+            ############################
+
             ob = env.reset()
         t += 1
+
+        ############################
+        if t % 500 == 0:
+            saver.save(tf.get_default_session(), '/home/projectVenom/ai-pilot/PPO-AI-Pilot/model/Exp1')
+            if roll_success_rate and np.mean(roll_success_rate) > max_success_rate:
+                max_success_rate = np.mean(roll_success_rate)
+                saver.save(tf.get_default_session(), '/home/projectVenom/ai-pilot/PPO-AI-Pilot/Exp1_best')
+        ############################
 
 def add_vtarg_and_adv(seg, gamma, lam):
     """
@@ -209,6 +251,13 @@ def learn(env, policy_fn, *,
         logger.record_tabular("EpisodesSoFar", episodes_so_far)
         logger.record_tabular("TimestepsSoFar", timesteps_so_far)
         logger.record_tabular("TimeElapsed", time.time() - tstart)
+
+        ############################
+        logger.record_tabular("AI_success_rate", np.mean(seg["success_rate"]))
+        logger.record_tabular("AI_distance", np.mean(seg["distance"]))
+        logger.record_tabular("AI_return", np.mean(seg["return"]))
+        ############################
+
         if MPI.COMM_WORLD.Get_rank()==0:
             logger.dump_tabular()
 
