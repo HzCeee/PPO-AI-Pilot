@@ -119,7 +119,7 @@ def installcamera(installori,F,H,FOVnear,FOVfar):
         return up,right
     
     up,right = getnearsize(F,H,FOVnear)
-    print(up,right)
+    # print(up,right)
     dronesimapi.installcamera(c_double(installori[0]),c_double(installori[1]),c_double(installori[2]),\
                               c_double(-right),c_double(right),c_double(-up),c_double(up),c_double(FOVnear),c_double(FOVfar))
 
