@@ -28,9 +28,9 @@ def traj_segment_generator(pi, env, horizon, stochastic):
     prevacs = acs.copy()
 
     ############################
-    roll_distance = deque([])
-    roll_success_rate = deque([])
-    roll_return = deque([])
+    roll_distance = deque([0])
+    roll_success_rate = deque([0])
+    roll_return = deque([0])
     max_success_rate = 0
 
     saver = tf.train.Saver()

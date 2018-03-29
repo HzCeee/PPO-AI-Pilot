@@ -25,10 +25,10 @@ def train(env_id, num_timesteps, seed):
 
 def train_ppo(num_timesteps):
     from baselines.ppo1 import mlp_policy, pposgd_simple
-    U.make_session(num_cpu=1).__enter__()
+    U.make_session(num_cpu=2).__enter__()
     def policy_fn(name, ob_space, ac_space):
         return mlp_policy.MlpPolicy(name=name, ob_space=ob_space, ac_space=ac_space,
-            hid_size=64, num_hid_layers=2)
+            hid_size=300, num_hid_layers=3)
     env = DroneSimEnv()
     pposgd_simple.learn(env, policy_fn,
             max_timesteps=num_timesteps,
@@ -45,7 +45,7 @@ def main():
     logger.configure()
     # train(args.env, num_timesteps=args.num_timesteps, seed=args.seed)
 
-    num_timesteps = int(1e6)
+    num_timesteps = int(1e30)
     train_ppo(num_timesteps)
 
 if __name__ == '__main__':
