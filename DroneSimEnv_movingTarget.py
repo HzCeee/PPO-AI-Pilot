@@ -174,6 +174,13 @@ class DroneSimEnv(gym.Env):
             reward = 0
             self.iteration = 0
 
+        # NaN
+        if math.isnan(self.distance):
+            print('finished due to NaN')
+            done = True
+            reward = 0
+            self.iteration = 0
+
         # control parameter
         self.iteration += 1
 
@@ -243,6 +250,9 @@ class DroneSimEnv(gym.Env):
         # get distance within hunter and target
         distance = np.array([self.distance / self.max_initial_distance])  
 
+        if math.isnan(self.distance):
+            return self.state
+
         # maintain a 8-length deque
         if self.coordinate_queue is None and self.distance_queue is None:
             self.coordinate_queue = deque([target_coordinate_in_view] * 8)
@@ -264,9 +274,6 @@ class DroneSimEnv(gym.Env):
                                 distance_state
                                 ], 0)
 
-        # if self.tmp_pos.any() != None :
-        #     tmp_pos = self.tmp_pos
-        # self.tmp_pos = position_hunter
         return state
 
 
@@ -292,7 +299,7 @@ class DroneSimEnv(gym.Env):
             distance = np.linalg.norm(np.array(position_hunter) - np.array(position_target))
 
         dronesim.siminit(np.squeeze(np.asarray(position_hunter)),np.squeeze(np.asarray(orientation_hunter)), \
-                         np.squeeze(np.asarray(position_target)),np.squeeze(np.asarray(orientation_target)), 20, 5, 720, 180)
+                         np.squeeze(np.asarray(position_target)),np.squeeze(np.asarray(orientation_target)), 20, 5)
         
         self.init_pos_target = position_target
 
