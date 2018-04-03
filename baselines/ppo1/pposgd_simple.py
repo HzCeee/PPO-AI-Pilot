@@ -99,10 +99,10 @@ def traj_segment_generator(pi, env, horizon, stochastic):
 
         ############################
         if t % 500 == 0:
-            saver.save(tf.get_default_session(), '/home/projectVenom/ai-pilot/PPO-AI-Pilot/model/Exp1')
+            saver.save(tf.get_default_session(), '/home/projectvenom/Documents/AIPilot/PPO-AI-Pilot/model/Exp1')
             if roll_success_rate and np.mean(roll_success_rate) > max_success_rate:
                 max_success_rate = np.mean(roll_success_rate)
-                saver.save(tf.get_default_session(), '/home/projectVenom/ai-pilot/PPO-AI-Pilot/model/Exp1_best')
+                saver.save(tf.get_default_session(), '/home/projectvenom/Documents/AIPilot/PPO-AI-Pilot/model/Exp1_best')
         ############################
 
 def add_vtarg_and_adv(seg, gamma, lam):
